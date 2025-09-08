@@ -1,14 +1,11 @@
 import userController from './userController.js';
 import tokenController from './tokenController.js';
-import { validateEmail } from '../utils/validators.js';
 
 const loginController = {
-    // Registro de usuario
     register: (req, res) => {
         try {
             const { username, email, password } = req.body;
 
-            // Validar datos requeridos
             if (!username || !email || !password) {
                 return res.status(400).json({
                     success: false,
@@ -16,10 +13,8 @@ const loginController = {
                 });
             }
 
-            // Crear usuario
             const newUser = userController.create({ username, email, password });
 
-            // Respuesta sin contraseña
             const { password: _, ...userResponse } = newUser;
 
             res.status(201).json({
@@ -31,7 +26,6 @@ const loginController = {
         } catch (error) {
             console.error('Error en registro:', error);
             
-            // Manejar errores de validación
             if (error.message.includes('email') || error.message.includes('username') || error.message.includes('contraseña')) {
                 return res.status(400).json({
                     success: false,
@@ -46,12 +40,10 @@ const loginController = {
         }
     },
 
-    // Login de usuario
     login: (req, res) => {
         try {
             const { identifier, password } = req.body;
 
-            // Validar datos requeridos
             if (!identifier || !password) {
                 return res.status(400).json({
                     success: false,
@@ -59,10 +51,8 @@ const loginController = {
                 });
             }
 
-            // Autenticar usuario
             const user = userController.authenticate(identifier, password);
 
-            // Respuesta exitosa sin contraseña
             const { password: _, ...userResponse } = user;
 
             res.json({
@@ -88,12 +78,10 @@ const loginController = {
         }
     },
 
-    // Solicitud de recuperación de contraseña
     forgotPassword: (req, res) => {
         try {
             const { email } = req.body;
 
-            // Validar email requerido
             if (!email) {
                 return res.status(400).json({
                     success: false,
@@ -101,15 +89,6 @@ const loginController = {
                 });
             }
 
-            // Validar formato de email
-            if (!validateEmail(email)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Formato de email inválido'
-                });
-            }
-
-            // Buscar usuario
             const user = userController.findByEmail(email);
             if (!user) {
                 return res.status(404).json({
@@ -118,16 +97,14 @@ const loginController = {
                 });
             }
 
-            // Crear token de recuperación
             const resetTokenData = tokenController.create(user.id);
 
-            // Simular envío de correo
             const resetLink = `https://midominio.com/reset-password?token=${resetTokenData.token}`;
 
             res.json({
                 success: true,
                 message: 'Se ha enviado un enlace de recuperación a tu correo',
-                resetLink: resetLink, // Solo para pruebas con Postman
+                resetLink: resetLink,
                 instructions: `Para probar, haz un POST a /api/auth/reset-password con el token: ${resetTokenData.token} y el body: {"password":"nuevaContraseña"}`
             });
 
@@ -140,13 +117,11 @@ const loginController = {
         }
     },
 
-    // Resetear contraseña
     resetPassword: (req, res) => {
         try {
             const { token } = req.query;
             const { password } = req.body;
 
-            // Validar token y contraseña
             if (!token) {
                 return res.status(400).json({
                     success: false,
@@ -161,13 +136,10 @@ const loginController = {
                 });
             }
 
-            // Validar token
             const resetToken = tokenController.validate(token);
 
-            // Actualizar contraseña del usuario
             userController.updatePassword(resetToken.userId, password);
 
-            // Marcar token como usado
             tokenController.markAsUsed(resetToken.id);
 
             res.json({

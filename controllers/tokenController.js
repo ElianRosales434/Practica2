@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 import tokens from '../databases/tokens.js';
 
 const tokenController = {
-        
     create: (userId, expirationMinutes = 15) => {
         const resetToken = uuidv4();
         const expirationTime = new Date(Date.now() + expirationMinutes * 60 * 1000);
@@ -20,7 +19,6 @@ const tokenController = {
         return newToken;
     },
 
-   
     validate: (tokenValue) => {
         const token = tokenController.findByToken(tokenValue);
         
@@ -39,7 +37,6 @@ const tokenController = {
         return token;
     },
 
-   
     markAsUsed: (tokenId) => {
         const tokenIndex = tokens.findIndex(token => token.id === tokenId);
         if (tokenIndex !== -1) {
@@ -64,7 +61,11 @@ const tokenController = {
 
     findByUserId: (userId) => {
         return tokens.filter(token => token.userId === userId);
-    },   
+    },
+
+    findByToken: (tokenValue) => {
+        return tokens.find(token => token.token === tokenValue);
+    }
 };
 
 export default tokenController;
